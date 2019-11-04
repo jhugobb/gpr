@@ -13,7 +13,6 @@ void SegmentCloud::buildFromCorrespondence(const PointCloud *cloud1, const Point
 	
 	for(unsigned int i=0; i<correspondence.size(); i++)
 	{
-		if (correspondence[i] == -1) std::cout << "hello" << endl;
 		if(correspondence[i] != -1)
 		{
 			points.push_back(cloud2->getPoints()[i]);

@@ -106,16 +106,16 @@ vector<int> *IterativeClosestPoint::computeCorrespondence()
 	for (uint i = 0; i < border_indexes.size(); i++) {
 		closests.insert(border_indexes[i]);
 	}
-	std::vector<int>* result = new std::vector<int>();
+	correspondence = new std::vector<int>();
 	std::vector<glm::vec3> points_2 = cloud2->getPoints();
 	std::vector<size_t> neighbors;
 	for (uint i = 0; i < points_2.size(); i++) {
 		neighbors = co.getNN_indexes(points_2[i],1);
 
-		if (closests.find(neighbors[0]) != closests.end()) result->push_back(-1);
-		else result->push_back(neighbors[0]);
+		if (closests.find(neighbors[0]) != closests.end()) correspondence->push_back(-1);
+		else correspondence->push_back(neighbors[0]);
 	}
-	return result;
+	return correspondence;
 }
 
 
@@ -126,8 +126,74 @@ vector<int> *IterativeClosestPoint::computeCorrespondence()
 glm::mat4 IterativeClosestPoint::computeICPStep()
 {
 	// TODO
-	
-	return glm::mat4(1.f);
+	std::vector<glm::vec3> points_1 = cloud1->getPoints();
+	std::vector<glm::vec3> points_2 = cloud2->getPoints();
+
+	std::vector<Eigen::Vector3f> P;
+	std::vector<Eigen::Vector3f> Q;
+
+	Eigen::Vector3f p,q;
+	int index;
+	for (uint i  = 0; i < points_2.size(); i++) {
+		index = correspondence->at(i);
+		if (index == -1) continue;
+		q = Eigen::Vector3f(points_2[i].x, points_2[i].y, points_2[i].z);
+		p = Eigen::Vector3f(points_1[correspondence->at(i)].x, 
+												points_1[correspondence->at(i)].y, 
+												points_1[correspondence->at(i)].z);
+		Q.push_back(q);
+		P.push_back(p);
+	} 
+	Eigen::Vector3f Q_centroid = co.computeCentroidOfPoints(Q);
+	Eigen::Vector3f P_centroid = co.computeCentroidOfPoints(P);
+
+	Q = co.adjustPointsByCentroid(Q_centroid, Q);
+	P = co.adjustPointsByCentroid(P_centroid, P);
+
+	Eigen::Matrix3Xf Q_mat(3, Q.size()), P_mat(3, P.size());
+
+	for (uint i  = 0; i < Q.size(); i++) {
+		Q_mat.col(i) = Q[i];
+		P_mat.col(i) = P[i];
+	}
+
+	Eigen::Matrix3f S_mat = Q_mat * P_mat.transpose();
+	Eigen::JacobiSVD<Eigen::Matrix3Xf> svd(S_mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
+	Eigen::Matrix3f R_mat = svd.matrixV() * svd.matrixU().transpose();
+
+	if (R_mat.determinant() == -1) {
+		Eigen::Matrix3f I;
+		I << 1,  0,  0,  0,
+				 0,  1,  0,  0,
+				 0,  0,  1,  0,
+				 0,  0,  0, -1;
+		R_mat = svd.matrixV() * I * svd.matrixU().transpose();
+	}	
+
+	Eigen::Vector3f translation = P_centroid - R_mat * Q_centroid;
+
+	glm::mat4 result;
+	Eigen::Matrix4f Rtrans;
+
+	Rtrans.col(0) = Eigen::Vector4f(R_mat.col(0)[0],R_mat.col(0)[1],R_mat.col(0)[2], 1);
+	Rtrans.col(1) = Eigen::Vector4f(R_mat.col(1)[0],R_mat.col(1)[1],R_mat.col(1)[2], 1);
+	Rtrans.col(2) = Eigen::Vector4f(R_mat.col(2)[0],R_mat.col(2)[1],R_mat.col(2)[2], 1);
+	Rtrans.col(3) = Eigen::Vector4f(translation.x(), translation.y(), translation.z(),  1);
+	frob_norm = Rtrans.norm();
+	for (uint i = 0; i < Rtrans.rows(); i++) {
+		for (uint j = 0; j < Rtrans.cols(); j++) {
+			result[i][j] = Rtrans.row(i)[j];
+		}
+	}
+	return glm::transpose(result);
+}
+
+// Returns true if the two arrays are equal, and false otherwise
+bool IterativeClosestPoint::checkCorrespondence(std::vector<int>* curr, std::vector<int>* prev) {
+	for (uint i = 0; i < curr->size(); i++) {
+		if (curr->at(i) != prev->at(i)) return false;
+	}
+	return true;
 }
 
 
@@ -139,8 +205,20 @@ glm::mat4 IterativeClosestPoint::computeICPStep()
 vector<int> *IterativeClosestPoint::computeFullICP(unsigned int maxSteps)
 {
 	// TODO
+	glm::mat4 icpTransform;
+	std::vector<int>* prev_corr = computeCorrespondence();
+	std::vector<int>* curr_corr;
+
+	for (uint iter = 0; iter < maxSteps; iter++) {
+		icpTransform = computeICPStep();
+		cloud2->transform(icpTransform);
+		if (frob_norm < 0.0000001f) break;
+		curr_corr = computeCorrespondence();
+		if (checkCorrespondence(curr_corr, prev_corr)) break;
+		prev_corr = curr_corr;
+	}
 	
-	return NULL;
+	return curr_corr;
 }
 
 
