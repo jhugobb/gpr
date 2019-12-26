@@ -8,8 +8,8 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -fopenmp")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fopenmp")
 
 execute_process(COMMAND ln -s ../shaders)
 
@@ -36,7 +36,7 @@ set(imgui_files imgui/imconfig.h imgui/imgui.cpp imgui/imgui_demo.cpp imgui/imgu
 
 set(gl3w_files gl3w/gl3w.c gl3w/GL/gl3w.h)
 
-add_executable(${appName} ${imgui_files} ${gl3w_files} ${nanoflann_files} PointCloud.h PointCloud.cpp Camera.h Camera.cpp Scene.h Scene.cpp Shader.h Shader.cpp ShaderProgram.h ShaderProgram.cpp Application.h Application.cpp main.cpp NearestNeighbors.h NearestNeighbors.cpp TriangleMesh.h TriangleMesh.cpp ImplicitFunction.h SphereFunction.h SphereFunction.cpp DualMarchingCubes.h DualMarchingCubes.cpp SimpleDistance.h SimpleDistance.cpp RBFFunction.h RBFFunction.cpp)
+add_executable(${appName} ${imgui_files} ${gl3w_files} ${nanoflann_files} CommonOperations.cpp CommonOperations.h PointCloud.h PointCloud.cpp Camera.h Camera.cpp Scene.h Scene.cpp Shader.h Shader.cpp ShaderProgram.h ShaderProgram.cpp Application.h Application.cpp main.cpp NearestNeighbors.h NearestNeighbors.cpp TriangleMesh.h TriangleMesh.cpp ImplicitFunction.h SphereFunction.h SphereFunction.cpp DualMarchingCubes.h DualMarchingCubes.cpp SimpleDistance.h SimpleDistance.cpp RBFFunction.h RBFFunction.cpp)
 
 target_link_libraries(${appName} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
 

@@ -184,7 +184,7 @@ void Scene::extractMesh()
 	}
 	
 	float cloudRadius = cloud.computeDistanceBetweenPoints();
-
+	cout << cloudRadius << endl;
 	switch(selectedFunction)
 	{
 	case 0:

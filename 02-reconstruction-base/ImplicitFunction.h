@@ -9,6 +9,7 @@ class ImplicitFunction
 {
 
 public:
+	// return is value. bool is for undefined distance for that point (false)
 	virtual bool operator()(const glm::vec3 &P, float &value) const = 0;
 
 };

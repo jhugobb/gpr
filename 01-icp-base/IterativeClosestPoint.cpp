@@ -89,7 +89,7 @@ void IterativeClosestPoint::markBorderPoints()
 		if (delta > max_delta) max_delta = delta;
 		if (max_delta > M_PI/2) border_indexes.push_back(i);
 	}
-
+	cout << border_indexes.size() << endl;
 	// cloud1_colors = cloud1->getColors();
 }
 

@@ -4,6 +4,7 @@
 
 #include "ImplicitFunction.h"
 #include "PointCloud.h"
+#include "CommonOperations.h"
 
 
 class RBFFunction : public ImplicitFunction
@@ -15,7 +16,13 @@ public:
 	bool operator()(const glm::vec3 &P, float &value) const;
 	
 private:
-
+	float gaussian(float r) const;
+	const PointCloud* points;
+	float std_dev;
+	float radius;
+	CommonOperations* co;
+	std::vector<double> c_is;
+	std::vector<glm::vec3>* ps;
 };
 
 

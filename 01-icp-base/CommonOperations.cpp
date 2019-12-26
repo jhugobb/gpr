@@ -61,8 +61,8 @@ std::vector<Eigen::Vector3f> CommonOperations::adjustPointsByCentroid(Eigen::Vec
 Eigen::Matrix3f CommonOperations::covarianceMatrix(std::vector<Eigen::Vector3f> points) {
   Eigen::Matrix3f covariance;
   covariance << 0.0f, 0.0f, 0.0f,
-          0.0f, 0.0f, 0.0f,
-          0.0f, 0.0f, 0.0f;
+          			0.0f, 0.0f, 0.0f,
+          			0.0f, 0.0f, 0.0f;
   for (uint i = 0; i < points.size(); i++) {
     covariance += points[i] * points[i].transpose();
   }
